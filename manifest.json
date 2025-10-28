@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "name": "Edostavka Price Tracker",
+  "version": "1.0",
+  "description": "Отслеживает цену товара на edostavka.by и показывает график изменений прямо на странице",
+  "permissions": [
+    "storage"
+  ],
+  "web_accessible_resources": [
+    "chart.min.js"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://edostavka.by/*"
+      ],
+      "js": [
+        "content-script.js"
+      ]
+    }
+  ],
+  "icons": {
+    "128": "icon.png"
+  }
+}
