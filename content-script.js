@@ -1,35 +1,51 @@
 (function () {
-    const isProductPage = location.pathname.includes('/product/');
-    const previewMatch = location.hash.match(/product_preview=(\d+)/);
-    const previewId = previewMatch ? previewMatch[1] : null;
+    var isProductPage = location.pathname.includes('/product/');
+    var previewMatch = location.hash.match(/product_preview=(\d+)/);
+    var previewId = previewMatch ? previewMatch[1] : null;
+
+    let lastUrl = location.href;
+
+    new MutationObserver(() => {
+        const currentUrl = location.href;
+        if (currentUrl !== lastUrl) {
+            lastUrl = currentUrl;
+            console.log('🔄 URL изменился:', currentUrl);
+            onUrlChange(); 
+        }
+    }).observe(document.body, { childList: true, subtree: true });
 
     if (previewId) {
-        const observer = new MutationObserver((_, obs) => {
-            const modal = document.querySelector('[data-modal-product-id]');
-            if (modal && modal.dataset.modalProductId === previewId) {
-                obs.disconnect();
 
-                const waitForContent = () => {
-                    const nameEl = modal.querySelector('h1');
-                    const priceEl = modal.querySelector('.price_main__nYHyt');
+        ModalGetData(previewId);
+    }
+    else if (isProductPage) {
 
-                    if (!nameEl || !priceEl) {
-                        setTimeout(waitForContent, 200);
-                        return;
-                    }
-
-                    handleProductModal(modal, previewId);
-                };
-
-                waitForContent();
-            }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
+        PageGetData();
     }
 
-    if (isProductPage) {
-        const nameEl = document.querySelector('header.product_title__7yvWR h1');
+    function onUrlChange() {
+        isProductPage = location.pathname.includes('/product/');
+        previewMatch = location.hash.match(/product_preview=(\d+)/);
+        previewId = previewMatch ? previewMatch[1] : null;
+
+        if (previewId) {
+            ModalGetData(previewId);
+        }
+        else if (isProductPage) {
+            PageGetData();
+        }
+        else if (!previewId && !isProductPage) {
+            const existingBtn = document.getElementById('price-history-button');
+            if (existingBtn) {
+                existingBtn.remove();
+            }
+        }
+    }
+
+    function PageGetData() {
+        const nameEl = document.querySelector('.heading_heading__text_level_1__7_duQ');
         const priceEl = document.querySelector('.price_main__nYHyt');
+        
         if (!nameEl || !priceEl) return;
 
         const name = nameEl.textContent.trim();
@@ -42,22 +58,33 @@
         renderButton(name, productId);
     }
 
-    function waitForContent(modal, productId) {
-        const poll = setInterval(() => {
-            const nameEl = modal.querySelector('h1');
-            const priceEl = modal.querySelector('.price_main__nYHyt');
-            if (!nameEl || !priceEl) return;
+    function ModalGetData(productId) {
+        if (previewMatch && previewId) {
+            const observer = new MutationObserver((mutations, obs) => {
+                const modal = document.getElementById(`product-modal-${previewId}`);
 
-            clearInterval(poll);
-            const name = nameEl.textContent.trim();
-            const priceText = priceEl.textContent.replace(/\s/g, '').replace(',', '.');
-            const price = parseFloat(priceText);
-            if (isNaN(price)) return;
+                if (modal) {
+                    obs.disconnect(); 
 
-            savePrice(productId, price);
-            renderButton(name, productId);
-        }, 300);
+                    const nameEl = modal.querySelector('.heading_heading__text_level_1__7_duQ');
+                    const priceEl = modal.querySelector('.price_main__nYHyt');
+
+                    if (!nameEl || !priceEl) return;
+
+                    const name = nameEl.textContent.trim();
+                    const priceText = priceEl.textContent.replace(/\s/g, '').replace(',', '.');
+                    const price = parseFloat(priceText);
+                    if (isNaN(price)) return;
+
+                    savePrice(productId, price);
+                    renderButton(name, productId);
+                }
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
     }
+
 
     function savePrice(productId, price) {
         const timestamp = new Date().toISOString();
@@ -81,9 +108,25 @@
         });
     }
 
+    function OldScriptClear() {
+        const oldChartScript = document.getElementById('price-chart-script');
+        const oldInitScript = document.getElementById('price-chart-init-script');
+
+        if (oldChartScript) oldChartScript.remove();
+        if (oldInitScript) oldInitScript.remove();
+    }
+
     function renderButton(name, productId) {
+        const oldBtn = document.getElementById('price-history-button');
+        if (oldBtn) oldBtn.remove();
+
+        const oldChart = document.getElementById('priceChartContainer');
+        if (oldChart) oldChart.remove();
+
         const key = `edostavka_price_history_${productId}`;
         const btn = document.createElement('button');
+        
+        btn.id = 'price-history-button';
         btn.innerHTML = `
       <span style="display: flex; align-items: center; gap: 8px;">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -95,7 +138,7 @@
     `;
         Object.assign(btn.style, {
             position: 'fixed',
-            bottom: '20px',
+            top: '20px',
             left: '20px',
             zIndex: '9999',
             padding: '10px 15px',
@@ -109,6 +152,9 @@
         });
 
         btn.onclick = () => {
+
+            OldScriptClear();
+
             const existing = document.getElementById('priceChartContainer');
             if (existing) {
                 existing.remove();
@@ -119,7 +165,7 @@
             container.id = 'priceChartContainer';
             Object.assign(container.style, {
                 position: 'fixed',
-                bottom: '80px',
+                top: '80px',
                 left: '20px',
                 width: '400px',
                 height: '220px',
@@ -140,6 +186,7 @@
             document.body.appendChild(container);
 
             const chartScript = document.createElement('script');
+            chartScript.id = 'price-chart-script';
             chartScript.src = chrome.runtime.getURL('chart.min.js');
             chartScript.onload = () => {
                 chrome.storage.local.get([key], (result) => {
@@ -148,6 +195,7 @@
                     const prices = data.map(d => d.price);
 
                     const initScript = document.createElement('script');
+                    initScript.id = 'price-chart-init-script';
                     initScript.textContent = `
             new Chart(document.getElementById('priceChart'), {
               type: 'line',
@@ -189,6 +237,7 @@
                 const isClickOnButton = btn.contains(event.target);
                 if (!isClickInsideChart && !isClickOnButton) {
                     chartContainer?.remove();
+                    OldScriptClear();
                     document.removeEventListener('click', outsideClickHandler);
                 }
             };
