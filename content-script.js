@@ -4,7 +4,8 @@
     var previewId = previewMatch ? previewMatch[1] : null;
     let isChartVisible = false;
     let lastUrl = location.href;
-
+    let outsideClickHandler = null;
+    
     new MutationObserver(() => {
         const currentUrl = location.href;
         if (currentUrl !== lastUrl) {
@@ -137,7 +138,7 @@
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    
+
     function showChartForProduct(productId, parent) {
         const key = `edostavka_price_history_${productId}`;
         let containerHeight = previewId ? 150 : 220;
@@ -205,6 +206,27 @@
                 prices
             }, '*');
         });
+
+        // Убираем старый обработчик клика, если был
+        if (outsideClickHandler) {
+            document.removeEventListener('click', outsideClickHandler);
+            outsideClickHandler = null;
+        }
+
+        // Навешиваем обработчик клика вне графика и кнопки
+        outsideClickHandler = function (event) {
+            const isClickInsideContainer = container.contains(event.target);
+            const isClickOnButton = btn.contains(event.target);
+
+            if (!isClickInsideContainer && !isClickOnButton) {
+                container.remove();
+                isChartVisible = false;
+                document.removeEventListener('click', outsideClickHandler);
+                outsideClickHandler = null;
+            }
+        };
+        // Срабатывает после текущего click, чтобы не закрыть сразу
+        setTimeout(() => document.addEventListener('click', outsideClickHandler), 0);
     }
 
 
