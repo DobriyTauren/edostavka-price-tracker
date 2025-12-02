@@ -107,8 +107,8 @@
 
         const productId = location.pathname.split('/').pop();
         savePrice(productId, price, () => {
-            renderButton(name, productId);
-            if (isChartVisible) showChartForProduct(productId);
+            renderButton(name, productId, document);
+            if (isChartVisible) showChartForProduct(productId, document);
         });
     }
 
@@ -116,6 +116,9 @@
         const observer = new MutationObserver((_, obs) => {
             const modal = document.getElementById(`product-modal-${previewId}`);
             if (modal) {
+
+                console.log("modal");
+
                 obs.disconnect();
                 const nameEl = modal.querySelector('.heading_heading__text_level_1__7_duQ');
                 const priceEl = modal.querySelector('.price_main__nYHyt');
@@ -124,8 +127,9 @@
                 const price = parseFloat(priceEl.textContent.replace(/\s/g, '').replace(',', '.'));
                 if (isNaN(price)) return;
                 savePrice(productId, price, () => {
-                    renderButton(name, productId);
-                    if (isChartVisible) showChartForProduct(productId);
+                    renderButton(name, productId, modal);
+                    console.log("button ready");
+                    // if (isChartVisible) showChartForProduct(productId);
                 });
 
             }
@@ -133,27 +137,62 @@
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    function showChartForProduct(productId) {
+    
+    function showChartForProduct(productId, parent) {
         const key = `edostavka_price_history_${productId}`;
+        let containerHeight = previewId ? 150 : 220;
+        const containerWidth = 400;
+        const btn = document.getElementById('price-history-button');
+        if (!btn) return;
+
+        // Удаляем старый график
         const existing = document.getElementById('priceChartContainer');
         if (existing) existing.remove();
 
+        const isModal = parent !== document;
+
+        // Создаём контейнер графика
         const container = document.createElement('div');
         container.id = 'priceChartContainer';
         Object.assign(container.style, {
-            position: 'fixed', top: '80px', left: '20px',
-            width: '400px', height: '220px', background: '#fff',
-            border: '1px solid #ccc', borderRadius: '8px', padding: '10px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.2)', zIndex: '9999'
+            position: isModal ? 'absolute' : 'absolute',
+            width: `${containerWidth}px`,
+            height: `${containerHeight}px`,
+            background: '#fff',
+            border: '1px solid #ccc',
+            borderRadius: '8px',
+            padding: '10px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            zIndex: '9999'
         });
 
+        // Позиционирование
+        if (isModal) {
+            parent.appendChild(container);
+            const rect = btn.getBoundingClientRect();
+            const parentRect = parent.getBoundingClientRect();
+            const top = rect.top - parentRect.top;
+            const left = rect.left - parentRect.left;
+
+            Object.assign(container.style, {
+                top: `${top - containerHeight - 6}px`,
+                left: `${left + btn.offsetWidth - containerWidth}px`
+            });
+        } else {
+            const rect = btn.getBoundingClientRect();
+            container.style.top = `${rect.top + window.scrollY - containerHeight - 8}px`;
+            container.style.left = `${rect.right + window.scrollX - containerWidth}px`;
+            document.body.appendChild(container);
+        }
+
+        // Канвас
         const canvas = document.createElement('canvas');
         canvas.id = 'priceChart';
         canvas.width = 380;
-        canvas.height = 200;
+        canvas.height = containerHeight - 20;
         container.appendChild(canvas);
-        document.body.appendChild(container);
 
+        // Данные
         chrome.storage.local.get([key], (result) => {
             const data = (result[key] || []).filter(d => d.price > 0);
             const labels = data.map(d => new Date(d.timestamp).toLocaleDateString());
@@ -167,6 +206,7 @@
             }, '*');
         });
     }
+
 
     function savePrice(productId, price, callback) {
         const timestamp = new Date().toISOString();
@@ -187,7 +227,7 @@
     }
 
 
-    function renderButton(name, productId) {
+    function renderButton(name, productId, parrent) {
         // удаляем старую кнопку, если она была
         const oldBtn = document.getElementById('price-history-button');
         if (oldBtn) oldBtn.remove();
@@ -225,13 +265,13 @@
                 container.remove();
                 isChartVisible = false;
             } else {
-                showChartForProduct(productId);
+                showChartForProduct(productId, parrent);
                 isChartVisible = true;
             }
         };
 
         // Находим элемент с "шт"
-        const priceBlock = document.querySelector('.price_price__NZl0e');
+        const priceBlock = parrent.querySelector('.price_price__NZl0e');
         if (priceBlock) {
             priceBlock.style.position = 'relative'; // чтобы absolute работал внутри
             btn.style.position = 'absolute';
