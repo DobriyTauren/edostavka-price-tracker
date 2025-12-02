@@ -2,7 +2,7 @@
     var isProductPage = location.pathname.includes('/product/');
     var previewMatch = location.hash.match(/product_preview=(\d+)/);
     var previewId = previewMatch ? previewMatch[1] : null;
-    let isChartVisible = false; 
+    let isChartVisible = false;
     let lastUrl = location.href;
 
     new MutationObserver(() => {
@@ -125,7 +125,7 @@
                 if (isNaN(price)) return;
                 savePrice(productId, price, () => {
                     renderButton(name, productId);
-                    if (isChartVisible) showChartForProduct(productId); 
+                    if (isChartVisible) showChartForProduct(productId);
                 });
 
             }
@@ -181,66 +181,68 @@
                     if (callback) callback();
                 });
             } else {
-                if (callback) callback(); 
+                if (callback) callback();
             }
         });
     }
 
 
     function renderButton(name, productId) {
-        document.getElementById('price-history-button')?.remove();
-        const key = `edostavka_price_history_${productId}`;
+        // удаляем старую кнопку, если она была
+        const oldBtn = document.getElementById('price-history-button');
+        if (oldBtn) oldBtn.remove();
+
         const btn = document.createElement('button');
         btn.id = 'price-history-button';
-
         btn.innerHTML = `
         <span style="display: flex; align-items: center; gap: 8px;">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                stroke-width="1.5" stroke="currentColor" width="24" height="24">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="24" height="24">
                 <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 
-                    1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 
-                    6.375 21h-2.25A1.125 1.125 0 0 1 3 
-                    19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 
-                    1.125-1.125h2.25c.621 0 1.125.504 
-                    1.125 1.125v11.25c0 .621-.504 1.125-1.125 
-                    1.125h-2.25a1.125 1.125 0 0 
-                    1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 
-                    1.125-1.125h2.25C20.496 3 21 3.504 21 
-                    4.125v15.75c0 .621-.504 1.125-1.125 
-                    1.125h-2.25a1.125 1.125 0 0 
-                    1-1.125-1.125V4.125Z" />
+                d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
             </svg>
-        </span>
-        `;
+        </span>`;
 
         Object.assign(btn.style, {
-            position: 'fixed',
-            top: '20px',
-            left: '20px',
-            zIndex: '9999',
-            padding: '10px 15px',
-            background: '#02b875',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '40px',
+            height: '40px',
+            padding: '0',
+            fontSize: '16px',
+            cursor: 'pointer',
+            background: 'linear-gradient(135deg, #ffaf4e 0%, #ff6459 100%)', // диагональный градиент
             color: '#fff',
             border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-            fontSize: '16px'
+            borderRadius: '20%',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
         });
+
 
         btn.onclick = () => {
             const container = document.getElementById('priceChartContainer');
             if (container) {
-
                 container.remove();
                 isChartVisible = false;
             } else {
-
                 showChartForProduct(productId);
                 isChartVisible = true;
             }
         };
-        document.body.appendChild(btn);
+
+        // Находим элемент с "шт"
+        const priceBlock = document.querySelector('.price_price__NZl0e');
+        if (priceBlock) {
+            priceBlock.style.position = 'relative'; // чтобы absolute работал внутри
+            btn.style.position = 'absolute';
+            btn.style.top = '50%';
+            btn.style.right = '8px'; // отступ справа
+            btn.style.transform = 'translateY(-50%)'; // центрируем по вертикали
+            priceBlock.appendChild(btn);
+        }
+
     }
+
+
+
 })();
