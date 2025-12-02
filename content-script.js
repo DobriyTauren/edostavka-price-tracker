@@ -2,7 +2,7 @@
     var isProductPage = location.pathname.includes('/product/');
     var previewMatch = location.hash.match(/product_preview=(\d+)/);
     var previewId = previewMatch ? previewMatch[1] : null;
-    let isChartVisible = false; // 🔑 Показывать график или нет
+    let isChartVisible = false; 
     let lastUrl = location.href;
 
     new MutationObserver(() => {
@@ -14,7 +14,6 @@
         }
     }).observe(document.body, { childList: true, subtree: true });
 
-    // === Впрыскиваем Chart.js и bootstrap прямо в страницу ===
     injectChartBootstrap();
 
     function injectChartBootstrap() {
@@ -109,7 +108,7 @@
         const productId = location.pathname.split('/').pop();
         savePrice(productId, price, () => {
             renderButton(name, productId);
-            if (isChartVisible) showChartForProduct(productId); // 🔄 только после сохранения
+            if (isChartVisible) showChartForProduct(productId);
         });
     }
 
@@ -126,7 +125,7 @@
                 if (isNaN(price)) return;
                 savePrice(productId, price, () => {
                     renderButton(name, productId);
-                    if (isChartVisible) showChartForProduct(productId); // 🔄 обновление графика после сохранения
+                    if (isChartVisible) showChartForProduct(productId); 
                 });
 
             }
@@ -179,10 +178,10 @@
             if (!last || last.price !== price || new Date(last.timestamp).toDateString() !== today) {
                 history.push({ timestamp, price });
                 chrome.storage.local.set({ [key]: history }, () => {
-                    if (callback) callback(); // ✅ вызываем после записи
+                    if (callback) callback();
                 });
             } else {
-                if (callback) callback(); // ✅ вызываем даже если запись не изменилась
+                if (callback) callback(); 
             }
         });
     }
@@ -233,11 +232,11 @@
         btn.onclick = () => {
             const container = document.getElementById('priceChartContainer');
             if (container) {
-                // если график уже показан — скрываем
+
                 container.remove();
                 isChartVisible = false;
             } else {
-                // показываем график и ставим флаг
+
                 showChartForProduct(productId);
                 isChartVisible = true;
             }
