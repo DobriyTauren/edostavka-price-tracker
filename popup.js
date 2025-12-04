@@ -1,92 +1,94 @@
-    document.addEventListener('DOMContentLoaded', () => {
-        const itemsContainer = document.getElementById('items');
-        const clearAllBtn = document.getElementById('clearAll');
-        const searchInput = document.getElementById('searchInput');
+document.addEventListener('DOMContentLoaded', () => {
+    const itemsContainer = document.getElementById('items');
+    const clearAllBtn = document.getElementById('clearAll');
+    const searchInput = document.getElementById('searchInput');
 
-        loadItems();
+    loadItems();
 
-        // Поиск по ID товара
-        searchInput.addEventListener('input', () => {
+    searchInput.addEventListener('input', () => {
+        loadItems(searchInput.value.trim());
+    });
+
+    function loadItems(filter = "") {
+        chrome.storage.local.get(null, (all) => {
+            const keys = Object.keys(all).filter(k => k.startsWith("edostavka_price_history_"));
+
+            const filteredKeys = keys.filter(k => {
+                const productId = k.replace("edostavka_price_history_", "");
+                return productId.includes(filter);
+            });
+
+            if (filteredKeys.length === 0) {
+                itemsContainer.innerHTML = "";
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty';
+                emptyDiv.textContent = "Нет сохранённых данных";
+                itemsContainer.appendChild(emptyDiv);
+                return;
+            }
+
+            itemsContainer.innerHTML = "";
+
+            filteredKeys.sort((a, b) => {
+                const idA = a.replace("edostavka_price_history_", "");
+                const idB = b.replace("edostavka_price_history_", "");
+                return idA.localeCompare(idB, undefined, { numeric: true });
+            });
+
+            filteredKeys.forEach(key => {
+                const productId = key.replace("edostavka_price_history_", "");
+                const history = all[key] || [];
+
+                history.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+                const block = document.createElement("div");
+                block.className = "item";
+
+                const idDiv = document.createElement("div");
+                idDiv.innerHTML = `<strong>ID товара:</strong> ${productId}`;
+                block.appendChild(idDiv);
+
+                const historyDiv = document.createElement("div");
+                historyDiv.style.marginTop = "6px";
+                history.forEach(h => {
+                    const entry = document.createElement("div");
+                    const date = new Date(h.timestamp).toLocaleDateString();
+                    entry.innerHTML = `${date}: <strong>${h.price}</strong>`;
+                    historyDiv.appendChild(entry);
+                });
+                block.appendChild(historyDiv);
+
+                const delBtn = document.createElement("button");
+                delBtn.className = "delete-btn";
+                delBtn.dataset.id = productId;
+                delBtn.textContent = "Удалить историю";
+                block.appendChild(delBtn);
+
+                block.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('delete-btn')) return;
+                    const url = `https://edostavka.by/product/${productId}`;
+                    window.open(url, '_blank');
+                });
+
+                itemsContainer.appendChild(block);
+
+                delBtn.addEventListener('click', () => removeItem(productId));
+            });
+        });
+    }
+
+    function removeItem(productId) {
+        chrome.storage.local.remove("edostavka_price_history_" + productId, () => {
             loadItems(searchInput.value.trim());
         });
+    }
 
-        function loadItems(filter = "") {
-            chrome.storage.local.get(null, (all) => {
-                const keys = Object.keys(all).filter(k => k.startsWith("edostavka_price_history_"));
+    clearAllBtn.addEventListener('click', () => {
+        if (!confirm("Вы уверены, что хотите удалить все сохранённые записи?")) return;
 
-                // фильтр по ID товара
-                const filteredKeys = keys.filter(k => {
-                    const productId = k.replace("edostavka_price_history_", "");
-                    return productId.includes(filter);
-                });
-
-                if (filteredKeys.length === 0) {
-                    itemsContainer.innerHTML = "<div class='empty'>Нет сохранённых данных</div>";
-                    return;
-                }
-
-                itemsContainer.innerHTML = "";
-
-                // Сортируем по ID
-                filteredKeys.sort((a, b) => {
-                    const idA = a.replace("edostavka_price_history_", "");
-                    const idB = b.replace("edostavka_price_history_", "");
-                    return idA.localeCompare(idB, undefined, { numeric: true });
-                });
-
-                filteredKeys.forEach(key => {
-                    const productId = key.replace("edostavka_price_history_", "");
-                    const history = all[key] || [];
-
-                    // сортировка истории по дате
-                    history.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-                    const block = document.createElement("div");
-                    block.className = "item";
-
-                    let historyHTML = history.map(h => {
-                        const date = new Date(h.timestamp).toLocaleDateString();
-                        return `<div>${date}: <strong>${h.price}</strong></div>`;
-                    }).join("");
-
-                    block.innerHTML = `
-                        <div><strong>ID товара:</strong> ${productId}</div>
-                        <div style="margin-top:6px;">${historyHTML}</div>
-                        <button class="delete-btn" data-id="${productId}">Удалить историю</button>
-                    `;
-
-                    // клик по карточке — открываем товар на edostavka.by
-                    block.addEventListener('click', (e) => {
-                        if (e.target.classList.contains('delete-btn')) return;
-                        const url = `https://edostavka.by/product/${productId}`;
-                        window.open(url, '_blank');
-                    });
-
-                    itemsContainer.appendChild(block);
-                });
-
-                document.querySelectorAll(".delete-btn").forEach(btn => {
-                    btn.onclick = () => removeItem(btn.dataset.id);
-                });
-            });
-        }
-
-        function removeItem(productId) {
-            chrome.storage.local.remove("edostavka_price_history_" + productId, () => {
-                loadItems(searchInput.value.trim());
-            });
-        }
-
-        // Подтверждение удаления всех записей
-        clearAllBtn.onclick = () => {
-            const confirmDelete = confirm("Вы уверены, что хотите удалить все сохранённые записи?");
-            if (!confirmDelete) return;
-
-            chrome.storage.local.get(null, (all) => {
-                const keys = Object.keys(all).filter(k => k.startsWith("edostavka_price_history_"));
-                chrome.storage.local.remove(keys, () => {
-                    loadItems(searchInput.value.trim());
-                });
-            });
-        };
+        chrome.storage.local.get(null, (all) => {
+            const keys = Object.keys(all).filter(k => k.startsWith("edostavka_price_history_"));
+            chrome.storage.local.remove(keys, () => loadItems(searchInput.value.trim()));
+        });
     });
+});
