@@ -1,16 +1,162 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Edostavka Price Tracker</title>
+  <meta charset="UTF-8" />
+  <title>Price Tracker</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; width: 250px; }
-    h1 { font-size: 16px; margin-bottom: 10px; }
-    p { font-size: 14px; }
+    body {
+      background: #1c1b22;
+      color: #f0f0f5;
+      font-family: Inter, Arial, sans-serif;
+      margin: 0;
+      padding: 14px;
+      width: 320px;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    h2 {
+      font-size: 15px;
+      margin: 16px 0 8px 0;
+      opacity: .85;
+      font-weight: 500;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 36px 10px 12px;
+      /* слева под иконку и внутренний padding */
+      border-radius: 8px;
+      border: 1px solid #3a3844;
+      background: #2b2a33;
+      color: #f0f0f5;
+      margin-bottom: 12px;
+      font-size: 13px;
+      box-sizing: border-box;
+      transition: all 0.2s ease-in-out;
+      outline: none;
+    }
+
+    input[type="text"]::placeholder {
+      color: #888;
+      transition: color 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #0076d7;
+      background: #34323f;
+    }
+
+    .search-container {
+      position: relative;
+    }
+
+    .item {
+      background: #2b2a33;
+      border: 1px solid #3a3844;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      transition: background 0.2s;
+      cursor: pointer;
+      /* курсор указывает на кликабельность */
+      position: relative;
+    }
+
+    .item:hover {
+      background: #3a3744;
+    }
+
+    /* Подсказка при наведении — теперь справа сверху */
+    .item::after {
+      content: 'Перейти на товар';
+      position: absolute;
+      top: 6px;
+      /* чуть отступ сверху */
+      right: 10px;
+      /* отступ справа */
+      font-size: 11px;
+      color: #aaa;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+
+    .item:hover::after {
+      opacity: 1;
+    }
+
+
+    .delete-btn {
+      margin-top: 10px;
+      background: #c0392b;
+      width: 100%;
+      color: #fff;
+      border: none;
+      padding: 7px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .delete-btn:hover {
+      background: #d35445;
+    }
+
+    #clearAll {
+      background: #d9534f;
+      color: white;
+      border: none;
+      padding: 10px;
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background .15s;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    #clearAll:hover {
+      background: #e46963;
+    }
+
+    .empty {
+      opacity: .65;
+      font-size: 13px;
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .divider {
+      height: 1px;
+      background: #36343f;
+      margin: 12px 0;
+    }
   </style>
 </head>
+
 <body>
-  <h1>Edostavka Price Tracker</h1>
-  <p>Это расширение отслеживает цены товаров на edostavka.by и сохраняет их <strong>только локально</strong> на вашем устройстве. Данные не отправляются на сервер.</p>
+  <h1>Price Tracker</h1>
+  <div class="divider"></div>
+
+  <h2>Сохранённые товары</h2>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Поиск по ID товара">
+  </div>
+
+
+  <div id="items"></div>
+
+  <button id="clearAll">Удалить всё</button>
+
+  <script src="popup.js"></script>
 </body>
+
 </html>

@@ -2,7 +2,6 @@
     var isProductPage = location.pathname.includes('/product/');
     var previewMatch = location.hash.match(/product_preview=(\d+)/);
     var previewId = previewMatch ? previewMatch[1] : null;
-    let isChartVisible = false;
     let lastUrl = location.href;
     let outsideClickHandler = null;
     
@@ -109,7 +108,6 @@
         const productId = location.pathname.split('/').pop();
         savePrice(productId, price, () => {
             renderButton(name, productId, document);
-            if (isChartVisible) showChartForProduct(productId, document);
         });
     }
 
@@ -117,8 +115,6 @@
         const observer = new MutationObserver((_, obs) => {
             const modal = document.getElementById(`product-modal-${previewId}`);
             if (modal) {
-
-                console.log("modal");
 
                 obs.disconnect();
                 const nameEl = modal.querySelector('.heading_heading__text_level_1__7_duQ');
@@ -129,8 +125,6 @@
                 if (isNaN(price)) return;
                 savePrice(productId, price, () => {
                     renderButton(name, productId, modal);
-                    console.log("button ready");
-                    // if (isChartVisible) showChartForProduct(productId);
                 });
 
             }
@@ -141,7 +135,7 @@
 
     function showChartForProduct(productId, parent) {
         const key = `edostavka_price_history_${productId}`;
-        let containerHeight = previewId ? 150 : 220;
+        let containerHeight = previewId ? 140 : 200;
         const containerWidth = 400;
         const btn = document.getElementById('price-history-button');
         if (!btn) return;
@@ -220,7 +214,6 @@
 
             if (!isClickInsideContainer && !isClickOnButton) {
                 container.remove();
-                isChartVisible = false;
                 document.removeEventListener('click', outsideClickHandler);
                 outsideClickHandler = null;
             }
@@ -285,15 +278,13 @@
             const container = document.getElementById('priceChartContainer');
             if (container) {
                 container.remove();
-                isChartVisible = false;
             } else {
                 showChartForProduct(productId, parrent);
-                isChartVisible = true;
             }
         };
 
         // Находим элемент с "шт"
-        const priceBlock = parrent.querySelector('.price_price__NZl0e');
+        const priceBlock = parrent.querySelector('.price_price__NZl0e.price_price_large__CFhEr');
         if (priceBlock) {
             priceBlock.style.position = 'relative'; // чтобы absolute работал внутри
             btn.style.position = 'absolute';
