@@ -32,7 +32,9 @@
     "gecko": {
       "id": "edostavka-price-tracker@dobriytauren.io",
       "data_collection_permissions": {
-        "required": [],
+        "required": [
+          "none"
+        ],
         "optional": []
       }
     }
