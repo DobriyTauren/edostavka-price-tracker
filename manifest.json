@@ -31,7 +31,10 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "edostavka-price-tracker@dobriytauren.io",
-      "data_collection_permissions": {}
+      "data_collection_permissions": {
+        "required": [],
+        "optional": []
+      }
     }
   }
 }

@@ -18,16 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return productId.includes(filter);
             });
 
+            itemsContainer.innerHTML = "";
+
             if (filteredKeys.length === 0) {
-                itemsContainer.innerHTML = "";
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = 'empty';
                 emptyDiv.textContent = "Нет сохранённых данных";
                 itemsContainer.appendChild(emptyDiv);
                 return;
             }
-
-            itemsContainer.innerHTML = "";
 
             filteredKeys.sort((a, b) => {
                 const idA = a.replace("edostavka_price_history_", "");
@@ -44,26 +43,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 const block = document.createElement("div");
                 block.className = "item";
 
+                // ID товара
                 const idDiv = document.createElement("div");
-                idDiv.innerHTML = `<strong>ID товара:</strong> ${productId}`;
+                const strongId = document.createElement("strong");
+                strongId.textContent = "ID товара:";
+                idDiv.appendChild(strongId);
+                idDiv.appendChild(document.createTextNode(" " + productId));
                 block.appendChild(idDiv);
 
+                // История цен
                 const historyDiv = document.createElement("div");
                 historyDiv.style.marginTop = "6px";
                 history.forEach(h => {
                     const entry = document.createElement("div");
                     const date = new Date(h.timestamp).toLocaleDateString();
-                    entry.innerHTML = `${date}: <strong>${h.price}</strong>`;
+
+                    const dateNode = document.createTextNode(date + ": ");
+                    const strongPrice = document.createElement("strong");
+                    strongPrice.textContent = h.price;
+
+                    entry.appendChild(dateNode);
+                    entry.appendChild(strongPrice);
                     historyDiv.appendChild(entry);
                 });
                 block.appendChild(historyDiv);
 
+                // Кнопка удаления
                 const delBtn = document.createElement("button");
                 delBtn.className = "delete-btn";
                 delBtn.dataset.id = productId;
                 delBtn.textContent = "Удалить историю";
                 block.appendChild(delBtn);
 
+                // Клик по блоку открывает товар
                 block.addEventListener('click', (e) => {
                     if (e.target.classList.contains('delete-btn')) return;
                     const url = `https://edostavka.by/product/${productId}`;
