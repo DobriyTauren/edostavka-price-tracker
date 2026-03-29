@@ -1,39 +1,40 @@
 # Edostavka Price Tracker
 
-Браузерное расширение для автоматического отслеживания изменений цен на **edostavka.by**. Сохраняет историю в локальном хранилище и показывает график изменения цены прямо на странице товара.
+A browser extension for automatically tracking price changes on edostavka.by. It stores price history in local storage and displays a price change chart directly on the product page.
 
-Это стороннее расширение для отслеживания цен на **edostavka.by**. Не является официальным продуктом Edostavka.
-
----
-
-## Возможности
-
-### Отслеживание цен
-- Определение страницы товара и модального окна предпросмотра.
-- Автоматическое сохранение цены в `chrome.storage.local`.
-- Добавление записи только при реальном изменении цены.
-
-### График изменения цены
-- Построение графика через **Chart.js**.
-- Отображение во всплывающем мини-окне прямо на странице товара.
-- Корректное позиционирование графика относительно блока цены и модального окна.
-
-### Интеграция с интерфейсом магазина
-- Кнопка для отображения графика появляется рядом с ценой.
-- Динамическое создание и удаление элементов с помощью `MutationObserver`.
-- Закрытие всплывающего окна кликом вне области.
-
-### Popup интерфейс расширения
-- Список всех отслеживаемых товаров.
-- История изменений цен с датами.
-- Быстрый поиск по ID товара.
-- Переход к товару по клику.
-- Удаление одной записи или полной истории.
+**This is a third-party extension for tracking prices on edostavka.by. It is not an official Edostavka product.**
 
 ---
 
-## Технологии
-- **JavaScript (vanilla)**
-- **WebExtensions API** 
-- **Chart.js**
-- **chrome.storage.local**
+## Features
+
+### Price Tracking
+- Detects product pages and preview modal windows  
+- Automatically saves prices to `chrome.storage.local`  
+- Adds a new record only when the price actually changes 
+
+### Price History Chart
+- Builds charts using **Chart.js**  
+- Displays a popup mini-window directly on the product page  
+- Correctly positions the chart relative to the price block and modal window  
+
+### Store Interface Integration
+- A button to display the chart appears next to the price  
+- Dynamic creation and removal of elements using `MutationObserver`  
+- Closes the popup when clicking outside of it  
+
+### Extension Popup Interface
+- List of all tracked products  
+- Price change history with dates  
+- Quick search by product ID  
+- Navigate to a product by clicking  
+- Delete a single record or the entire history  
+
+---
+
+## Technologies
+
+- JavaScript
+- WebExtensions API
+- Chart.js
+- chrome.storage.local
