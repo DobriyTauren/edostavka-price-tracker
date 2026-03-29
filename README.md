@@ -14,7 +14,7 @@ A browser extension for automatically tracking price changes on edostavka.by. It
 - Adds a new record only when the price actually changes 
 
 ### Price History Chart
-- Builds charts using **Chart.js**  
+- Builds charts using `Chart.js`
 - Displays a popup mini-window directly on the product page  
 - Correctly positions the chart relative to the price block and modal window  
 
